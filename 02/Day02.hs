@@ -5,19 +5,18 @@ import Text.Printf
 data Move = Rock | Paper | Scissors deriving (Show, Eq)
 data Outcome = Lost | Draw | Won deriving (Show)
 
-enemy "A" = Rock
-enemy "B" = Paper
-enemy "C" = Scissors
-
-response "X" = Rock
-response "Y" = Paper
-response "Z" = Scissors
+move "A" = Rock
+move "B" = Paper
+move "C" = Scissors
+move "X" = Rock
+move "Y" = Paper
+move "Z" = Scissors
 
 outcome "X" = Lost
 outcome "Y" = Draw
 outcome "Z" = Won
 
-parseInput player input = map (\[x, y] -> (enemy x, player y)) . map words . lines $ input
+parseInput f input = map (\[x, y] -> (move x, f y)) . map words . lines $ input
 
 scoreMove Rock = 1
 scoreMove Paper = 2
@@ -30,12 +29,12 @@ scoreOutcome Won = 6
 scoring (result, selectedMove) = scoreOutcome result + scoreMove selectedMove
 
 beatby Rock = Paper
-beatby Scissors = Rock
 beatby Paper = Scissors
+beatby Scissors = Rock
 
 beats Rock = Scissors
-beats Scissors = Paper
 beats Paper = Rock
+beats Scissors = Paper
 
 selectMove move Draw = move
 selectMove move Won = beatby move
@@ -56,5 +55,5 @@ part2 = sum . map scoring . map result
 main :: IO ()
 main = do
     input <- readFile "input.txt"
-    printf "Part 1: %d\n" $ part1 (parseInput response input)
+    printf "Part 1: %d\n" $ part1 (parseInput move input)
     printf "Part 2: %d\n" $ part2 (parseInput outcome input)
