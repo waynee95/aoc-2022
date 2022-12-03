@@ -31,6 +31,6 @@ part2 = sum . map priority . map result
 
 main :: IO ()
 main = do
-    f <- readFile "input.txt"
-    printf "Part 1: %d\n" $ part1 (map split (lines f))
-    printf "Part 2: %d\n" $ part2 (chunksOf 3 . lines $ f)
+    l <- lines <$> readFile "input.txt"
+    printf "Part 1: %d\n" $ part1 (map split l)
+    printf "Part 2: %d\n" $ part2 (chunksOf 3 l)
