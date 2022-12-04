@@ -27,11 +27,10 @@ overlapAny (x1, x2) (y1, y2) =
         || (y1 <= x1 && x1 <= y2)
         || (y1 <= x2 && x2 <= y2)
 
--- (uncurry overlapAny) :: ((Int, Int), (Int, Int)) -> Bool
-solve f = length . filter ((==) True) . map (uncurry f)
+solve f = length . filter (uncurry f)
 
 main :: IO ()
 main = do
-    pairList <- parseInput <$> T.readFile "input.txt"
-    printf "Part 1: %d\n" $ solve overlapFully pairList
-    printf "Part 2: %d\n" $ solve overlapAny pairList
+    rangeList <- parseInput <$> T.readFile "input.txt"
+    printf "Part 1: %d\n" $ solve overlapFully rangeList
+    printf "Part 2: %d\n" $ solve overlapAny rangeList
