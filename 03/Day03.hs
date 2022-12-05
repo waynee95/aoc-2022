@@ -1,5 +1,3 @@
-module Day03 where
-
 import Data.Char
 import Data.List
 import Text.Printf

@@ -1,5 +1,3 @@
-module Day02 where
-
 import Text.Printf
 
 data Move = Rock | Paper | Scissors deriving (Show, Eq)
