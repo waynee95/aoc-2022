@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 import Control.Monad
 import Data.Char (isAsciiUpper, isDigit)
 import Data.List
@@ -9,9 +7,7 @@ import Text.Printf (printf)
 
 type Crate = Char
 type Stack = [Crate]
-
-data Instruction = Instruction {n :: Int, from :: Int, to :: Int}
-    deriving (Show)
+type Instruction = (Int, Int, Int)
 
 newline :: ReadP Char
 newline = char '\n'
@@ -44,7 +40,7 @@ parseInstruction = do
     from <- pred <$> parseInt
     void $ string " to "
     to <- pred <$> parseInt
-    return Instruction{n, from, to}
+    return (n, from, to)
 
 parseStacksAndInstructions :: ReadP ([Stack], [Instruction])
 parseStacksAndInstructions = do
@@ -59,37 +55,32 @@ parseStacksAndInstructions = do
 replace :: Int -> a -> [a] -> [a]
 replace i x xs = take i xs ++ x : drop (i + 1) xs
 
-moveN :: Int -> Stack -> Stack -> (Stack, Stack)
-moveN n from to = (new, remaining)
+moveN :: (Stack -> Stack) -> Int -> Stack -> Stack -> (Stack, Stack)
+moveN modifier n from to = (new, remaining)
   where
-    new = take n from ++ to
+    new = modifier (take n from) ++ to
     remaining = drop n from
 
-execMove :: Int -> [Stack] -> Int -> Int -> [Stack]
-execMove n stacks from to = stacks'
+execMove :: (Stack -> Stack) -> Int -> [Stack] -> Int -> Int -> [Stack]
+execMove modifier n st from to = st'
   where
-    fromst = stacks !! from
-    tost = stacks !! to
-    (new, remaining) = moveN n fromst tost
-    stacks' = replace to new (replace from remaining stacks)
+    fromst = st !! from
+    tost = st !! to
+    (new, remaining) = moveN modifier n fromst tost
+    st' = replace to new (replace from remaining st)
 
 tops = map head . filter (not . null)
 
--- not the most elegant but it works ¯\_(ツ)_/¯
-part1 st [] = tops st
-part1 st (Instruction{n = 0, from, to} : rest) = part1 st rest
-part1 st (Instruction{n, from, to} : rest) =
-    part1 (execMove 1 st from to) (Instruction{n = pred n, from, to} : rest)
-
-part2 st [] = tops st
-part2 st (Instruction{n, from, to} : rest) =
-    part2 (execMove n st from to) rest
+solve modifier st ins = tops $ foldl go st ins
+  where
+    go acc (n, from, to) =
+        execMove modifier n acc from to
 
 main :: IO ()
 main = do
-    (st, intrs) <- fst . last . readP_to_S parseStacksAndInstructions <$> readFile "input.txt"
-    printf "Part 1: %s\n" $ part1 st intrs
-    printf "Part 2: %s\n" $ part2 st intrs
+    (st, instrs) <- fst . last . readP_to_S parseStacksAndInstructions <$> readFile "input.txt"
+    printf "Part 1: %s\n" $ solve reverse st instrs
+    printf "Part 2: %s\n" $ solve id st instrs
 
 -- Part 1: RFFFWBPNS
 -- Part 2: CQQBBJFCS
