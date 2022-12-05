@@ -70,7 +70,7 @@ execInstr modifier st (n, from, to) = st'
     st' = replace to new (replace from remaining st)
 
 solve :: (Stack -> Stack) -> [Stack] -> [Instruction] -> String
-solve modifier st ins = tops $ foldl (execInstr modifier) st ins
+solve modifier = tops . foldl (execInstr modifier)
   where
     -- collect top element of resulting stacks
     tops = map head . filter (not . null)
