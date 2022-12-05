@@ -61,8 +61,8 @@ moveN modifier n from to = (new, remaining)
     new = modifier (take n from) ++ to
     remaining = drop n from
 
-execMove :: (Stack -> Stack) -> Int -> [Stack] -> Int -> Int -> [Stack]
-execMove modifier n st from to = st'
+execInstr :: (Stack -> Stack) -> [Stack] -> Instruction -> [Stack]
+execInstr modifier st (n, from, to) = st'
   where
     fromst = st !! from
     tost = st !! to
@@ -70,11 +70,8 @@ execMove modifier n st from to = st'
     st' = replace to new (replace from remaining st)
 
 solve :: (Stack -> Stack) -> [Stack] -> [Instruction] -> String
-solve modifier st ins = tops $ foldl go st ins
+solve modifier st ins = tops $ foldl (execInstr modifier) st ins
   where
-    go acc (n, from, to) =
-        execMove modifier n acc from to
-
     -- collect top element of resulting stacks
     tops = map head . filter (not . null)
 
