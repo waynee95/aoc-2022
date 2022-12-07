@@ -4,7 +4,7 @@ import Data.List (foldl')
 import Text.ParserCombinators.ReadP
 import Text.Printf (printf)
 
-data FSItem = File String Int | Folder String [FSItem]
+data FSItem = File String Int | Dir String [FSItem]
     deriving (Show)
 
 data Location = Root | Up | Down String
@@ -13,7 +13,7 @@ data Cmd = ChangeDir Location | ListDir [FSItem]
     deriving (Show)
 
 -- http://learnyouahaskell.com/zippers
--- parent folder, items before, items after
+-- parent dir, items before, items after
 data FSContext = FSContext String [FSItem] [FSItem]
     deriving (Show)
 
@@ -52,7 +52,7 @@ parseDir :: ReadP FSItem
 parseDir = do
     void $ string "dir "
     name <- many1 (satisfy isAlphaNum)
-    return $ Folder name [] -- to be filled later
+    return $ Dir name [] -- to be filled later
 
 parseListDir :: ReadP Cmd
 parseListDir = do
@@ -65,58 +65,59 @@ parseCommands = sepBy (parseChangeDir +++ parseListDir) newline
 
 nameOf :: FSItem -> String
 nameOf (File name _) = name
-nameOf (Folder name _) = name
+nameOf (Dir name _) = name
 
 cdUp :: FSZipper -> FSZipper
 cdUp (item, FSContext name ls rs : bs) =
-    (Folder name (ls ++ [item] ++ rs), bs)
+    (Dir name (ls ++ [item] ++ rs), bs)
 
 cdRoot :: FSZipper -> FSZipper
 cdRoot (item, []) = (item, [])
 cdRoot fs = cdRoot $ cdUp fs
 
 cdTo :: String -> FSZipper -> FSZipper
-cdTo to (Folder parent items, bs) =
-    let (ls, folder : rs) = break ((==) to . nameOf) items
-     in (folder, FSContext parent ls rs : bs)
+cdTo to (Dir parent items, bs) =
+    let (ls, dir : rs) = break ((==) to . nameOf) items
+     in (dir, FSContext parent ls rs : bs)
 
 execCmd :: FSZipper -> Cmd -> FSZipper
 execCmd fs (ChangeDir Root) = cdRoot fs
 execCmd fs (ChangeDir Up) = cdUp fs
 execCmd fs (ChangeDir (Down s)) = cdTo s fs
-execCmd fs (ListDir items) = (Folder name items, bs)
+execCmd fs (ListDir items) = (Dir name items, bs)
   where
-    (Folder name _, bs) = fs
+    (Dir name _, bs) = fs
 
-isFolder :: FSItem -> Bool
-isFolder (Folder _ _) = True
-isFolder _ = False
+isDir :: FSItem -> Bool
+isDir (Dir _ _) = True
+isDir _ = False
 
 size :: FSItem -> Int
 size (File _ size) = size
-size (Folder _ items) = sum $ map size items
+size (Dir _ items) = sum $ map size items
 
 collect :: (FSItem -> Bool) -> FSItem -> [FSItem]
-collect pred f@(Folder _ items) = [f | pred f] ++ concatMap (collect pred) items
+collect pred d@(Dir _ items) = [d | pred d] ++ concatMap (collect pred) items
 collect pred file = [file | pred file]
 
 part1 :: FSItem -> Int
 part1 = sum . map size . collect smallEnough
   where
     smallEnough (File _ _) = False
-    smallEnough (Folder _ items) = (sum $ map size items) <= 100000
+    smallEnough (Dir _ items) = (sum $ map size items) <= 100000
 
 part2 :: FSItem -> Int
-part2 root = minimum . filter ((>= neededSpace) . (+ unusedSpace)) . map size . collect isFolder $ root
+part2 root = minimum . filter freesEnough . map size . collect isDir $ root
   where
     totalSpace = 70000000
     neededSpace = 30000000
     unusedSpace = totalSpace - size root
+    freesEnough space = unusedSpace + space >= neededSpace
 
 main :: IO ()
 main = do
     cmds <- fst . last . readP_to_S parseCommands <$> readFile "input.txt"
-    let root = fst . cdRoot . foldl' execCmd (Folder "/" [], []) $ cmds
+    let root = fst . cdRoot . foldl' execCmd (Dir "/" [], []) $ cmds
     printf "Part 1: %d\n" $ part1 root
     printf "Part 2: %d\n" $ part2 root
 
