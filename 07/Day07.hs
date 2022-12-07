@@ -19,7 +19,6 @@ data FSContext = FSContext String [FSItem] [FSItem]
 
 type FSZipper = (FSItem, [FSContext])
 
-
 newline :: ReadP Char
 newline = char '\n'
 
@@ -38,7 +37,7 @@ parseChangeDir :: ReadP Cmd
 parseChangeDir = do
     void $ string "$ cd "
     loc <- parseLocation
-    return (ChangeDir loc)
+    return $ ChangeDir loc
 
 isFileName = liftM2 (||) isAlphaNum isPunctuation
 
@@ -69,7 +68,8 @@ nameOf (File name _) = name
 nameOf (Folder name _) = name
 
 cdUp :: FSZipper -> FSZipper
-cdUp (item, FSContext name ls rs : bs) = (Folder name (ls ++ [item] ++ rs), bs)
+cdUp (item, FSContext name ls rs : bs) =
+    (Folder name (ls ++ [item] ++ rs), bs)
 
 cdRoot :: FSZipper -> FSZipper
 cdRoot (item, []) = (item, [])
@@ -87,7 +87,6 @@ execCmd fs (ChangeDir (Down s)) = cdTo s fs
 execCmd fs (ListDir items) = (Folder name items, bs)
   where
     (Folder name _, bs) = fs
-
 
 isFolder :: FSItem -> Bool
 isFolder (Folder _ _) = True
@@ -108,11 +107,11 @@ part1 = sum . map size . collect smallEnough
     smallEnough (Folder _ items) = (sum $ map size items) <= 100000
 
 part2 :: FSItem -> Int
-part2 root = minimum . filter ((>= neededSpace) . (unusedSpace +)) . map size . collect isFolder $ root
+part2 root = minimum . filter ((>= neededSpace) . (+ unusedSpace)) . map size . collect isFolder $ root
   where
     totalSpace = 70000000
-    unusedSpace = totalSpace - size root
     neededSpace = 30000000
+    unusedSpace = totalSpace - size root
 
 main :: IO ()
 main = do
