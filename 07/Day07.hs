@@ -77,8 +77,8 @@ cdRoot fs = cdRoot $ cdUp fs
 
 cdTo :: String -> FSZipper -> FSZipper
 cdTo to (Folder parent items, bs) =
-    let (ls, dir : rs) = break ((==) to . nameOf) items
-     in (dir, FSContext parent ls rs : bs)
+    let (ls, folder : rs) = break ((==) to . nameOf) items
+     in (folder, FSContext parent ls rs : bs)
 
 execCmd :: FSZipper -> Cmd -> FSZipper
 execCmd fs (ChangeDir Root) = cdRoot fs
@@ -117,8 +117,8 @@ main :: IO ()
 main = do
     cmds <- fst . last . readP_to_S parseCommands <$> readFile "input.txt"
     let root = fst . cdRoot . foldl' execCmd (Folder "/" [], []) $ cmds
-    printf "Part 1:%d\n" $ part1 root
-    printf "Part 2:%d\n" $ part2 root
+    printf "Part 1: %d\n" $ part1 root
+    printf "Part 2: %d\n" $ part2 root
 
 -- Part 1:1447046
 -- Part 2:578710
