@@ -34,31 +34,18 @@ parseLocation = do
         ]
 
 parseChangeDir :: ReadP Cmd
-parseChangeDir = do
-    void $ string "$ cd "
-    loc <- parseLocation
-    return $ ChangeDir loc
+parseChangeDir = ChangeDir <$> (string "$ cd " *> parseLocation)
 
 isFileName = liftM2 (||) isAlphaNum isPunctuation
 
 parseFile :: ReadP FSItem
-parseFile = do
-    size <- parseInt
-    void $ char ' '
-    name <- many1 (satisfy isFileName)
-    return $ File name size
+parseFile = flip File <$> parseInt <*> (char ' ' *> many1 (satisfy isFileName))
 
 parseDir :: ReadP FSItem
-parseDir = do
-    void $ string "dir "
-    name <- many1 (satisfy isAlphaNum)
-    return $ Dir name [] -- to be filled later
+parseDir = Dir <$> (string "dir " *> many1 (satisfy isAlphaNum)) <*> pure []
 
 parseListDir :: ReadP Cmd
-parseListDir = do
-    void $ string "$ ls\n"
-    content <- sepBy (parseFile +++ parseDir) newline
-    return $ ListDir content
+parseListDir = ListDir <$> (string "$ ls" *> newline *> sepBy (parseFile +++ parseDir) newline)
 
 parseCommands :: ReadP [Cmd]
 parseCommands = sepBy (parseChangeDir +++ parseListDir) newline
