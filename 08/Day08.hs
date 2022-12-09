@@ -28,13 +28,8 @@ part2 grid = maximum $ zipWith (*) horz vert
 
 -- visible from left
 visible :: [Int] -> [Bool]
-visible = go (-1)
-  where
-    go _ [] = []
-    go _ [x] = [True]
-    go h (x : xs)
-        | x > h = True : go x xs
-        | otherwise = False : go h xs
+visible [x] = [True]
+visible (x : xs) = all (< x) xs : visible xs
 
 score :: [Int] -> [Int]
 score [x] = [0]
