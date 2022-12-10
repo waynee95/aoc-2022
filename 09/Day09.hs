@@ -62,7 +62,7 @@ execStep d = do
     return $ S.size ps'
 
 execSteps :: [Direction] -> Int -> Int
-execSteps ds n = last $ evalState (mapM execStep ds) $ init n
+execSteps ds n = last . evalState (mapM execStep ds) $ init n
 
 init :: Int -> (Rope, History)
 init n = (rope n, S.empty)
