@@ -1,27 +1,35 @@
-{-# LANGUAGE OverloadedStrings #-}
+import Data.Char (isDigit)
+import Data.List (sortOn)
+import Data.Ord (Down (..))
+import Text.ParserCombinators.ReadP
+import Text.Printf (printf)
 
-import Data.List
-import Text.Printf
+newline :: ReadP Char
+newline = char '\n'
 
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Read as T
+emptyLine :: ReadP String
+emptyLine = string "\n\n"
 
-parseInput :: T.Text -> [[Int]]
-parseInput input = intList
-  where
-    split = T.splitOn "\n\n" input
-    strList = map T.lines split
-    intList = map (\list -> map (\(Right (n, _)) -> n) (map T.decimal list)) strList
+parseInt :: ReadP Int
+parseInt = read <$> munch1 isDigit
+
+parseIntBlock :: ReadP [Int]
+parseIntBlock = sepBy parseInt newline
+
+parseInput :: ReadP [[Int]]
+parseInput = sepBy parseIntBlock emptyLine
 
 part1 :: [[Int]] -> Int
 part1 = maximum . map sum
 
 part2 :: [[Int]] -> Int
-part2 = sum . take 3 . sortBy (flip compare) . map sum
+part2 = sum . take 3 . sortOn Down . map sum
 
 main :: IO ()
 main = do
-    intList <- parseInput <$> T.readFile "input.txt"
-    printf "Part 1: %d\n" $ part1 intList
-    printf "Part 2: %d\n" $ part2 intList
+    xs <- fst . last . readP_to_S parseInput <$> readFile "input.txt"
+    printf "Part 1: %d\n" $ part1 xs
+    printf "Part 2: %d\n" $ part2 xs
+
+-- Part 1: 68467
+-- Part 2: 203420
