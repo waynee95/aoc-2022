@@ -14,7 +14,7 @@ outcome "X" = Lost
 outcome "Y" = Draw
 outcome "Z" = Won
 
-parseInput f input = map (\[x, y] -> (move x, f y)) . map words . lines $ input
+parseInput f = map ((\[x, y] -> (move x, f y)) . words) . lines
 
 scoreMove Rock = 1
 scoreMove Paper = 2
@@ -39,14 +39,14 @@ selectMove move Won = beatby move
 selectMove move Lost = beats move
 
 part1 :: [(Move, Move)] -> Int
-part1 = sum . map scoring . map result
+part1 = sum . map (scoring . result)
   where
     result (x, y) | x == y = (Draw, y)
     result (x, y) | x == beats y = (Won, y)
     result (x, y) = (Lost, y)
 
 part2 :: [(Move, Outcome)] -> Int
-part2 = sum . map scoring . map result
+part2 = sum . map (scoring . result)
   where
     result (x, y) = (y, selectMove x y)
 

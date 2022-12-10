@@ -17,7 +17,7 @@ parseCrate = do
     void $ char '['
     c <- satisfy isAsciiUpper
     void $ char ']'
-    return $ c
+    return c
 
 parseMaybeCrate :: ReadP (Maybe Crate)
 parseMaybeCrate = do
@@ -70,7 +70,7 @@ execInstr modifier st (n, from, to) = st'
     st' = replace to new (replace from remaining st)
 
 solve :: (Stack -> Stack) -> [Stack] -> [Instruction] -> String
-solve modifier = tops . foldl (execInstr modifier)
+solve modifier st instrs = tops $ foldl (execInstr modifier) st instrs
   where
     -- collect top element of resulting stacks
     tops = map head . filter (not . null)

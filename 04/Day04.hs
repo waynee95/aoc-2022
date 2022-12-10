@@ -7,9 +7,9 @@ import qualified Data.Text.Read as T
 import Text.Printf
 
 parseInput :: T.Text -> [((Int, Int), (Int, Int))]
-parseInput = map rangeToNums . map splitRanges . map (T.splitOn ",") . T.lines
+parseInput = map ((rangeToNums . splitRanges) . T.splitOn ",") . T.lines
   where
-    splitRange r = T.splitOn "-" r
+    splitRange = T.splitOn "-"
     splitRanges [x, y] = (splitRange x, splitRange y)
 
     toNum s = let (Right (n, _)) = T.decimal s in n

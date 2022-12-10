@@ -91,7 +91,7 @@ part1 :: FSItem -> Int
 part1 = sum . map size . collect smallEnough
   where
     smallEnough (File _ _) = False
-    smallEnough (Dir _ items) = (sum $ map size items) <= 100000
+    smallEnough (Dir _ items) = sum (map size items) <= 100000
 
 part2 :: FSItem -> Int
 part2 root = minimum . filter freesEnough . map size . collect isDir $ root
