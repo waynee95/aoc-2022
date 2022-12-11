@@ -40,31 +40,39 @@ parseInput =
                     Add x -> return [Noop, Add x]
             )
 
-execInstr :: Instr -> State Int Int
-execInstr Noop = get
-execInstr (Add n) = do
-    r <- get
-    put $ r + n
-    return r
-
-execInstrs :: [Instr] -> [Int]
-execInstrs instrs = evalState (mapM execInstr instrs) init
-  where
-    init = 1
-
-strength :: [Int] -> Int -> Int
-strength xs i = i * (xs !! i)
-
-part1 :: [Instr] -> Int
-part1 instrs = sum . map (strength (0 : execInstrs instrs)) $ [20, 60 .. 220]
+cycles :: [Int]
+cycles = [20, 60 .. 220]
 
 pixel :: Int -> Int -> Char
 pixel r c
     | abs (r - c `mod` 40) < 2 = '#'
     | otherwise = '.'
 
+execInstr :: Instr -> State (Int, Int, Int) Char
+execInstr instr = case instr of
+    Noop -> go 0
+    Add n -> go n
+  where
+    go :: Int -> State (Int, Int, Int) Char
+    go n = do
+        (c, r, s) <- get
+        let c' = succ c
+            r' = r + n
+            s' = s + if c' `elem` cycles then c' * r else 0
+        put (c', r', s')
+        return $ pixel r c
+
+execInstrs instrs = runState (mapM execInstr instrs) init
+  where
+    init = (0, 1, 0)
+
+part1 :: [Instr] -> Int
+part1 = third . snd . execInstrs
+  where
+    third (a, b, c) = c
+
 part2 :: [Instr] -> String
-part2 instrs = unlines . chunksOf 40 $ zipWith pixel (execInstrs instrs) [0 ..]
+part2 = unlines . chunksOf 40 . fst . execInstrs
 
 main :: IO ()
 main = do
