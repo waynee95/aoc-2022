@@ -62,6 +62,7 @@ execInstr instr = case instr of
         put (c', r', s')
         return $ pixel r c
 
+execInstrs :: [Instr] -> ([Char], (Int, Int, Int))
 execInstrs instrs = runState (mapM execInstr instrs) init
   where
     init = (0, 1, 0)
