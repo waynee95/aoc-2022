@@ -12,8 +12,6 @@ import Text.Printf (printf)
 import qualified Data.IntMap as M
 import qualified Data.Sequence as Seq
 
-type Item = Int
-
 data OpType = Add | Mult
     deriving (Show, Eq)
 
@@ -53,7 +51,7 @@ parseInt = read <$> munch1 isDigit
 parseIntList :: ReadP [Int]
 parseIntList = sepBy parseInt (string ", ")
 
-parseStartingItems :: ReadP [Item]
+parseStartingItems :: ReadP [Int]
 parseStartingItems = do
     void $ indent
     string "Starting items: "
